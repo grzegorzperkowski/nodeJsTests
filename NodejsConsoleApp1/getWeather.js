@@ -6,8 +6,7 @@ const app = express()
 app.get("*", sendWeatherOfRandomCity)
 
 function sendWeatherOfRandomCity(req, response) {
-    getWeatherOfRandomCity(req, response)
-    // console.log(response.responseText);
+    getWeatherForCity(req, response)
 }
 
 
@@ -23,28 +22,27 @@ function GetCityNameFromReq(request) {
     return request.originalUrl
 }
 
-function traceError(err)
-{
+function traceError(err) {
     console.error("@@Error: " + err)
 }
 
 let counter = 0
-function getWeatherOfRandomCity(request, response) {
+function getWeatherForCity(request, response) {
     try {
         ++counter
-
         let fs = require("fs")
-        fs.writeFile("req_file_" + counter + ".html", request.query, traceError )
+        fs.writeFile("req_file_" + counter + ".html", request.query, traceError)
         console.log(request)
 
         const city = GetCityNameFromReq(request)
-        console.log(`Geting location for: ${city}`)
+        console.log(`Getting location for: ${city}`)
 
-        superagent.get(`wttr.in/${city}`)
+        const reqAddr = `wttr.in${request.originalUrl}`
+        superagent.get(reqAddr)
             .end((err, res) => {
                 if (err) {
-                    console.log('O snap')
-                    return response.status(500).send('There was an error getting the weather, try looking out the window')
+                    console.log('Unable to complete request: ' + reqAddr)
+                    return response.status(res.status).send('There was an error getting the weather, try looking out the window')
                 }
                 const responseText = res.text
                 // console.log(res.text)
@@ -57,5 +55,5 @@ function getWeatherOfRandomCity(request, response) {
     }
     console.log('Fetching the weather, please be patient')
 }
-
-app.listen(8080)
+let port = 8080
+app.listen(port, () => console.log("Listen on port " + port))
