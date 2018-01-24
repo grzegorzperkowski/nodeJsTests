@@ -6,7 +6,7 @@ const app = express()
 app.get("*", sendWeatherOfRandomCity)
 
 function sendWeatherOfRandomCity(req, response) {
-    getWeatherForCity(req, response)
+    handleRequestToOnet(req, response)
 }
 
 
@@ -22,21 +22,15 @@ function GetCityNameFromReq(request) {
 }
 
 function traceError(err) {
-    console.error("@@Error: " + err)
+    if(err != undefined || err != null)
+        console.error("@@Error: " + err)
 }
 
 let counter = 0
-function getWeatherForCity(request, response) {
+function handleRequestToOnet(request, response) {
     try {
-        ++counter
-        let fs = require("fs")
-        fs.writeFile("req_file_" + counter + ".html", request.query, traceError)
-        console.log(request)
-
-        const city = GetCityNameFromReq(request)
-        console.log(`Getting location for: ${city}`)
-
-        const reqAddr = `wttr.in${request.originalUrl}`
+        const reqAddr = `onet.pl${request.originalUrl}`
+        console.log(reqAddr.substr(0, 30));
         superagent.get(reqAddr)
             .end((err, res) => {
                 if (err) {
@@ -44,15 +38,12 @@ function getWeatherForCity(request, response) {
                     return response.status(res.status).send('There was an error getting the weather, try looking out the window')
                 }
                 const responseText = res.text
-                // console.log(res.text)
-                fs.writeFile("resp_file_" + counter + ".html", responseText, traceError)
                 response.send(responseText)
             })
     }
     catch (err) {
         response.end(500)
     }
-    console.log('Fetching the weather, please be patient')
 }
 let port = 8080
 app.listen(port, () => console.log("Listen on port " + port))
