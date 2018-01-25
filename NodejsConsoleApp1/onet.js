@@ -5,8 +5,23 @@ const app = express()
 
 app.get("*", sendWeatherOfRandomCity)
 
-function sendWeatherOfRandomCity(req, response) {
-    handleRequestToOnet(req, response)
+function sendWeatherOfRandomCity(request, response) {
+    try {
+        const reqAddr = `onet.pl${request.originalUrl}`
+        console.log(reqAddr.substr(0, 30));
+        superagent.get(reqAddr)
+            .end((err, res) => {
+                if (err) {
+                    console.log('Unable to complete request: ' + reqAddr)
+                    return response.status(res.status).send('There was an error getting the weather, try looking out the window')
+                }
+                const responseText = res.text
+                response.send(responseText)
+            })
+    }
+    catch (err) {
+        response.end(500)
+    }
 }
 
 
@@ -27,23 +42,8 @@ function traceError(err) {
 }
 
 let counter = 0
-function handleRequestToOnet(request, response) {
-    try {
-        const reqAddr = `onet.pl${request.originalUrl}`
-        console.log(reqAddr.substr(0, 30));
-        superagent.get(reqAddr)
-            .end((err, res) => {
-                if (err) {
-                    console.log('Unable to complete request: ' + reqAddr)
-                    return response.status(res.status).send('There was an error getting the weather, try looking out the window')
-                }
-                const responseText = res.text
-                response.send(responseText)
-            })
-    }
-    catch (err) {
-        response.end(500)
-    }
+function handleRequest(request, response) {
+
 }
 let port = 8080
 app.listen(port, () => console.log("Listen on port " + port))
